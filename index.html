@@ -15,9 +15,15 @@
   <meta property="og:url" content="https://srod24.github.io/performcore-site/">
   <meta property="og:locale" content="en_US">
   <meta property="og:site_name" content="PerformCore">
-  <meta name="twitter:card" content="summary">
+  <meta property="og:image" content="https://srod24.github.io/performcore-site/images/hero-install-wide.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1600">
+  <meta property="og:image:height" content="900">
+  <meta property="og:image:alt" content="A window film installer applying film to a large glass pane">
+  <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="PerformCore | Window Tint &amp; Film in Naples, FL">
   <meta name="twitter:description" content="Window film for homes, commercial buildings, and vehicles in Collier and Lee County, Florida.">
+  <meta name="twitter:image" content="https://srod24.github.io/performcore-site/images/hero-install-wide.jpg">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -87,7 +93,7 @@
     .body-text-light { font-family: var(--font-body), "Helvetica Neue", Arial, sans-serif; font-size: 18px; line-height: 1.7; color: #B9C0BA; margin: 0; max-width: 620px; }
     .section-head { display: flex; flex-direction: column; gap: 20px; padding: 0; margin-bottom: 64px; }
 
-    /* Photo panels — intentional dark panels until real job photos are added */
+    /* Photo panels */
     .photo-slot {
       position: relative;
       display: block;
@@ -119,6 +125,13 @@
       background: linear-gradient(90deg, transparent, rgba(76,175,80,0.55), transparent);
       pointer-events: none;
     }
+    .photo-slot picture {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
     .photo-slot img {
       position: absolute;
       inset: 0;
@@ -126,8 +139,15 @@
       height: 100%;
       object-fit: cover;
     }
-    .photo-slot:has(img)::before,
-    .photo-slot:has(img)::after { display: none; }
+    .photo-builders img { object-position: 52% 48%; }
+    .photo-slot:has(img)::before { display: none; }
+    .photo-slot:has(img)::after {
+      top: auto;
+      bottom: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, rgba(76,175,80,0.75), transparent);
+      z-index: 1;
+    }
 
     /* Hero */
     .hero { display: grid; grid-template-columns: 1.15fr 1fr; column-gap: 64px; align-items: end; padding: 140px 48px 120px; background-color: var(--color-charcoal); }
@@ -302,7 +322,14 @@
         <a class="btn-ghost" data-contact="call" href="tel:+12392969853">Call (239) 296-9853</a>
       </div>
     </div>
-    <div class="photo-slot photo-hero" data-photo="hero-install.jpg" aria-hidden="true"></div>
+    <div class="photo-slot photo-hero" data-photo="hero-install.jpg">
+      <picture>
+        <source media="(min-width: 1025px)" type="image/webp" srcset="images/hero-install.webp">
+        <source media="(min-width: 1025px)" type="image/jpeg" srcset="images/hero-install.jpg">
+        <source type="image/webp" srcset="images/hero-install-wide.webp">
+        <img src="images/hero-install-wide.jpg" alt="A window film installer applying film to a large glass pane with a squeegee in warm Florida light" width="1600" height="900">
+      </picture>
+    </div>
   </section>
 
   <section class="film-line">
@@ -331,21 +358,36 @@
     </div>
     <div class="division-grid">
       <article class="division-card" id="residential">
-        <div class="photo-slot photo-division" data-photo="residential.jpg" aria-hidden="true"></div>
+        <div class="photo-slot photo-division" data-photo="residential.jpg">
+          <picture>
+            <source type="image/webp" srcset="images/residential.webp">
+            <img src="images/residential.jpg" alt="Modern Southwest Florida home with large tinted sliding glass doors, palm trees, and a pool at dusk" width="1600" height="900" loading="lazy">
+          </picture>
+        </div>
         <p class="division-tag">Residential</p>
         <h3 class="division-title">Homes and new construction</h3>
         <p class="division-text">For homeowners, builders and HOAs. Measured on site and priced per square foot by the film you pick.</p>
         <a class="text-link" href="#quote">Request a residential quote →</a>
       </article>
       <article class="division-card" id="commercial">
-        <div class="photo-slot photo-division" data-photo="commercial.jpg" aria-hidden="true"></div>
+        <div class="photo-slot photo-division" data-photo="commercial.jpg">
+          <picture>
+            <source type="image/webp" srcset="images/commercial.webp">
+            <img src="images/commercial.jpg" alt="Sleek Naples-style glass office plaza with tinted storefront windows and palm trees" width="1600" height="900" loading="lazy">
+          </picture>
+        </div>
         <p class="division-tag">Commercial</p>
         <h3 class="division-title">Offices, gyms and plazas</h3>
         <p class="division-text">Cut heat and glare for tenants and staff. Scheduled around your business hours.</p>
         <a class="text-link" href="#quote">Request a commercial quote →</a>
       </article>
       <article class="division-card" id="automotive">
-        <div class="photo-slot photo-division" data-photo="automotive.jpg" aria-hidden="true"></div>
+        <div class="photo-slot photo-division" data-photo="automotive.jpg">
+          <picture>
+            <source type="image/webp" srcset="images/automotive.webp">
+            <img src="images/automotive.jpg" alt="Dark luxury sedan with freshly tinted windows in a clean professional detail bay" width="1600" height="900" loading="lazy">
+          </picture>
+        </div>
         <p class="division-tag">Automotive</p>
         <h3 class="division-title">Cars, SUVs and trucks</h3>
         <p class="division-text">Full tint, front doors, windshields and tint removal, with clear pricing by vehicle size.</p>
@@ -399,7 +441,12 @@
       <p class="builders-text">We work with general contractors and property teams in Collier and Lee County. Film goes in on your schedule, priced by square foot, with one point of contact for the whole job.</p>
       <a class="btn-dark" href="#quote">Talk about a project</a>
     </div>
-    <div class="photo-slot photo-builders" data-photo="new-construction.jpg" aria-hidden="true"></div>
+    <div class="photo-slot photo-builders" data-photo="new-construction.jpg">
+      <picture>
+        <source type="image/webp" srcset="images/new-construction.webp">
+        <img src="images/new-construction.jpg" alt="New Southwest Florida home under construction with fresh windows, painter's tape on the frames, and tropical landscaping" width="1600" height="900" loading="lazy">
+      </picture>
+    </div>
   </section>
 
   <section class="quote" id="quote">
