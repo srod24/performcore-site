@@ -239,6 +239,43 @@
     .quote-form select option[value=""] { color: #7D857F; }
     .quote-form select option { color: #FFFFFF; background: var(--color-charcoal); }
     .quote-form .btn-primary { align-self: flex-start; margin-top: 6px; }
+
+    .goal-field { border: 0; margin: 0; padding: 0; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+    .goal-field .field-label { padding: 0; }
+    .goal-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+    .goal-chip {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 12px 16px;
+      border: 1px solid #4A524C;
+      border-radius: 999px;
+      background: transparent;
+      color: #FFFFFF;
+      font-family: var(--font-body), "Helvetica Neue", Arial, sans-serif;
+      font-weight: 600;
+      font-size: 15px;
+      line-height: 1.2;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .goal-chip input {
+      position: absolute;
+      opacity: 0;
+      width: 1px;
+      height: 1px;
+      margin: 0;
+      pointer-events: none;
+    }
+    .goal-chip:has(input:checked) {
+      background: var(--color-green);
+      border-color: var(--color-green);
+      color: var(--color-charcoal);
+    }
+    .goal-chip:focus-within { outline: 2px solid var(--color-green); outline-offset: 2px; }
     .form-note { font-family: var(--font-body), "Helvetica Neue", Arial, sans-serif; font-size: 13px; line-height: 1.5; color: #9AA29C; margin: 0; }
     .form-status { font-family: var(--font-body), "Helvetica Neue", Arial, sans-serif; font-size: 14px; line-height: 1.5; color: var(--color-green); margin: 0; min-height: 1.2em; }
 
@@ -483,6 +520,20 @@
         <option value="Not sure">Not sure / a mix</option>
       </select>
 
+      <div class="goal-field" id="quote-goals" role="group" aria-labelledby="quote-goals-label" aria-describedby="quote-goals-hint" aria-required="true">
+        <p class="field-label" id="quote-goals-label">What are you hoping to fix?</p>
+        <p class="form-note" id="quote-goals-hint">Pick at least one. You can choose more than one.</p>
+        <div class="goal-chips" id="quote-goal-chips">
+          <label class="goal-chip"><input type="checkbox" name="goals" value="Heat"><span>Heat</span></label>
+          <label class="goal-chip"><input type="checkbox" name="goals" value="Glare"><span>Glare</span></label>
+          <label class="goal-chip"><input type="checkbox" name="goals" value="Fading / UV protection"><span>Fading / UV protection</span></label>
+          <label class="goal-chip"><input type="checkbox" name="goals" value="Privacy"><span>Privacy</span></label>
+          <label class="goal-chip"><input type="checkbox" name="goals" value="Security / shatter protection"><span>Security / shatter protection</span></label>
+          <label class="goal-chip"><input type="checkbox" name="goals" value="Looks / style"><span>Looks / style</span></label>
+          <label class="goal-chip"><input type="checkbox" name="goals" value="Not sure yet"><span>Not sure yet</span></label>
+        </div>
+      </div>
+
       <label class="field-label" for="quote-name">Name</label>
       <input id="quote-name" name="name" type="text" autocomplete="name" required maxlength="100" placeholder="Your name">
 
@@ -565,16 +616,37 @@
     var $ = function (id) { return document.getElementById(id); };
     var svc = $("quote-service");
     var HINTS = {
-      Residential: ["Home address or area", "Rooms or windows, sun or privacy problems, any film you have in mind"],
-      Commercial: ["Building, storefront or address", "Number of windows or square feet, floors, goals like heat, glare or privacy"],
-      Automotive: ["Year, make and model", "Full tint, front doors, windshield strip, tint removal, shade you want"],
-      "Not sure": ["Address, building, or year/make/model", "Tell us what you're trying to fix and we'll point you the right way"]
+      Residential: ["Home address or area", "Rooms or windows, film you want, anything else we should know"],
+      Commercial: ["Building, storefront or address", "Number of windows or square feet, floors, anything else we should know"],
+      Automotive: ["Year, make and model", "Full tint, front doors, windshield, tint removal, shade you want"],
+      "Not sure": ["Address, building, or year/make/model", "Anything else we should know"]
     };
+    var GOAL_ORDER = {
+      Residential: ["Heat", "Glare", "Fading / UV protection", "Privacy", "Security / shatter protection", "Looks / style", "Not sure yet"],
+      Commercial: ["Heat", "Glare", "Privacy", "Security / shatter protection", "Fading / UV protection", "Looks / style", "Not sure yet"],
+      Automotive: ["Heat", "Privacy", "Looks / style", "Fading / UV protection", "Glare", "Security / shatter protection", "Not sure yet"],
+      "Not sure": ["Heat", "Glare", "Fading / UV protection", "Privacy", "Security / shatter protection", "Looks / style", "Not sure yet"]
+    };
+    function orderGoals(v) {
+      var order = GOAL_ORDER[v] || GOAL_ORDER["Not sure"];
+      var box = $("quote-goal-chips");
+      if (!box) return;
+      var map = {};
+      Array.prototype.forEach.call(box.querySelectorAll(".goal-chip"), function (el) {
+        var input = el.querySelector("input");
+        if (input) map[input.value] = el;
+      });
+      order.forEach(function (g) { if (map[g]) box.appendChild(map[g]); });
+    }
+    function selectedGoals() {
+      return Array.prototype.map.call(document.querySelectorAll("#quote-goal-chips input:checked"), function (el) { return el.value; });
+    }
     function setService(v) {
       if (!v || !HINTS[v]) return;
       svc.value = v;
       $("quote-property").placeholder = HINTS[v][0];
       $("quote-details").placeholder = HINTS[v][1];
+      orderGoals(v);
     }
     svc.addEventListener("change", function () { setService(svc.value); });
     document.querySelectorAll("[data-service]").forEach(function (el) {
@@ -597,6 +669,7 @@
       statusEl.classList.remove("is-error"); statusEl.textContent = "";
       var payload = {
         service: svc.value || "",
+        goals: selectedGoals(),
         name: ($("quote-name").value || "").trim(),
         phone: ($("quote-phone").value || "").trim(),
         email: ($("quote-email").value || "").trim(),
@@ -606,6 +679,7 @@
         page: location.href.slice(0, 300)
       };
       if (!payload.service) { showError("Please choose a service."); svc.focus(); return; }
+      if (!payload.goals.length) { showError("Please tell us what you're hoping to fix."); $("quote-goals").scrollIntoView({ behavior: "smooth", block: "center" }); return; }
       if (!payload.name) { showError("Please add your name."); $("quote-name").focus(); return; }
       if (!payload.phone && !payload.email) { showError("Please add a phone number or an email."); $("quote-phone").focus(); return; }
       if (payload.email && !$("quote-email").checkValidity()) { showError("That email doesn't look right."); $("quote-email").focus(); return; }
