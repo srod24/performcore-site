@@ -27,7 +27,7 @@ Search `index.html` for `FILM COUNTER`. Edit the three values on `#film-sqft`:
 
 The page shows `START_SQFT + time since START_DATE × SQFT_PER_DAY`. Everyone sees the same number, and it keeps ticking while the page is open. Also set the text inside the span to `START_SQFT` with commas, so visitors without JavaScript still see the starting total.
 
-The values in the file now are examples. Replace them before publishing.
+`START_SQFT` is 127,764 as of `2026-11-24`. `SQFT_PER_DAY` is 650. Both numbers are confirmed.
 
 ## Publish
 
