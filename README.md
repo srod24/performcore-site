@@ -19,11 +19,15 @@ That block updates the call buttons, the phone lines in the page, and the LocalB
 
 ## Update square feet of film applied
 
-Search `index.html` for `FILM COUNTER`. Change only the text inside the element with id `film-sqft`.
+Search `index.html` for `FILM COUNTER`. Edit the three values on `#film-sqft`:
 
-- A whole number, such as `250000` or `250,000`, counts up when the stat scrolls into view.
-- If the visitor has reduced motion turned on, the final number appears right away.
-- Anything that is not a whole number is shown exactly as typed, including the `XXXXXXXXX` placeholder. The page will not show `NaN`.
+- `data-start-sqft` (`START_SQFT`) — total square feet on the start date
+- `data-start-date` (`START_DATE`) — `YYYY-MM-DD`, midnight UTC
+- `data-sqft-per-day` (`SQFT_PER_DAY`) — square feet added per day after that
+
+The page shows `START_SQFT + time since START_DATE × SQFT_PER_DAY`. Everyone sees the same number, and it keeps ticking while the page is open. Also set the text inside the span to `START_SQFT` with commas, so visitors without JavaScript still see the starting total.
+
+The values in the file now are examples. Replace them before publishing.
 
 ## Publish
 

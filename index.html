@@ -436,6 +436,9 @@
       overflow-wrap: anywhere;
     }
     .film-stat-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
       flex: 1 1 12rem;
       font-family: var(--font-heading);
       font-weight: 700;
@@ -443,6 +446,18 @@
       line-height: 1.15;
       letter-spacing: -0.03em;
       color: #FFFFFF;
+    }
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--color-green);
+      flex: 0 0 auto;
+      animation: film-live 2.2s ease-out infinite;
+    }
+    @keyframes film-live {
+      0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.55); }
+      100% { box-shadow: 0 0 0 7px rgba(76, 175, 80, 0); }
     }
     .film-line {
       display: grid;
@@ -923,6 +938,7 @@
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
       }
+      .live-dot { animation: none; box-shadow: none; }
     }
   </style>
 </head>
@@ -977,21 +993,26 @@
   <section class="proof" aria-labelledby="proof-heading">
     <p class="film-stat">
       <!--
-        FILM COUNTER — edit only the text inside the span below.
-        This is the only place the total square feet is stored.
+        FILM COUNTER
+        EXAMPLE VALUES - OWNER MUST REPLACE BEFORE MERGE
 
-        Replace XXXXXXXXX with the total square feet of window film applied.
-        Use a whole number, for example 250000. Commas are optional.
+        Edit only the three data- attributes on #film-sqft.
+        Keep the text inside that span equal to START_SQFT with
+        thousands separators. That text shows when JavaScript is off.
 
-        A whole number counts up when this line scrolls into view.
-        If the visitor prefers reduced motion, the final number appears
-        immediately and does not animate.
+          START_SQFT     data-start-sqft     250000
+          START_DATE     data-start-date     2026-11-23
+          SQFT_PER_DAY   data-sqft-per-day   1000
 
-        Anything that is not a whole number, including XXXXXXXXX, is shown
-        exactly as typed. This will never display NaN.
+        Shown value = START_SQFT + time since START_DATE × SQFT_PER_DAY.
+        START_DATE is midnight UTC of that calendar day, so every visitor
+        sees the same total. It keeps ticking while the page is open
+        (once a second; once a minute when reduced motion is on, with
+        no animation). Before START_DATE it stays at START_SQFT.
+        It will never display NaN.
       -->
-      <span class="film-stat-value" id="film-sqft" translate="no">XXXXXXXXX</span>
-      <span class="film-stat-label">sq ft of film applied</span>
+      <span class="film-stat-value" id="film-sqft" translate="no" data-start-sqft="250000" data-start-date="2026-11-23" data-sqft-per-day="1000">250,000</span>
+      <span class="film-stat-label"><span class="live-dot" aria-hidden="true"></span>sq ft of film applied</span>
     </p>
     <h2 id="proof-heading" class="sr-only">What window film helps with</h2>
     <ul class="film-line">
@@ -1269,78 +1290,65 @@
       });
     }
 
-    function parseFilmTotal(text) {
-      var trimmed = String(text == null ? "" : text).trim();
-      var compact = trimmed.replace(/\s/g, "");
-      if (!/^(\d{1,3}(,\d{3})+|\d+)$/.test(compact)) return { ok: false, raw: trimmed };
-      var value = Number(compact.replace(/,/g, ""));
-      if (typeof value !== "number" || !isFinite(value)) return { ok: false, raw: trimmed };
-      return { ok: true, raw: trimmed, value: value };
-    }
-
     function formatCount(n) {
       if (typeof n !== "number" || !isFinite(n)) return null;
       var rounded = Math.round(n);
       if (!isFinite(rounded)) return null;
-      try { return rounded.toLocaleString("en-US"); }
-      catch (err) { return String(rounded); }
+      var text;
+      try { text = rounded.toLocaleString("en-US"); }
+      catch (err) { text = String(rounded); }
+      if (!text || text.indexOf("NaN") !== -1) return null;
+      return text;
+    }
+
+    function readFilmNumber(raw) {
+      if (raw == null) return null;
+      var s = String(raw).trim().replace(/,/g, "");
+      if (!/^-?\d+(\.\d+)?$/.test(s)) return null;
+      var n = Number(s);
+      return typeof n === "number" && isFinite(n) ? n : null;
+    }
+
+    function readFilmStartMs(raw) {
+      if (typeof raw !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(raw)) return null;
+      var ms = Date.parse(raw + "T00:00:00Z");
+      return typeof ms === "number" && isFinite(ms) ? ms : null;
     }
 
     function initFilmCounter() {
       var el = document.getElementById("film-sqft");
       if (!el) return;
-      if (el._filmObserver) {
-        el._filmObserver.disconnect();
-        el._filmObserver = null;
+      var fallback = String(el.textContent || "").replace(/\s+/g, " ").trim();
+      if (fallback.indexOf("NaN") !== -1) {
+        fallback = "";
+        el.textContent = "";
       }
-      var parsed = parseFilmTotal(el.textContent);
-      if (!parsed.ok) {
-        el.textContent = parsed.raw;
-        return;
-      }
-      var finalText = formatCount(parsed.value);
-      if (finalText == null) {
-        el.textContent = parsed.raw;
-        return;
-      }
-      if (reduceMotion || typeof requestAnimationFrame !== "function") {
-        el.textContent = finalText;
-        return;
-      }
+      var startSqft = readFilmNumber(el.getAttribute("data-start-sqft"));
+      var perDay = readFilmNumber(el.getAttribute("data-sqft-per-day"));
+      var startMs = readFilmStartMs(el.getAttribute("data-start-date"));
+      if (startSqft == null || perDay == null || startMs == null) return;
 
-      var started = false;
-      function tick() {
-        if (started) return;
-        started = true;
-        var target = parsed.value;
-        var duration = 1200;
-        var start = null;
-        el.textContent = formatCount(0) || "0";
-        function frame(now) {
-          if (start === null) start = now;
-          var progress = Math.min(1, (now - start) / duration);
-          var eased = 1 - Math.pow(1 - progress, 3);
-          var text = formatCount(target * eased);
-          el.textContent = text == null ? finalText : text;
-          if (progress < 1) requestAnimationFrame(frame);
-          else el.textContent = finalText;
+      var dayMs = 24 * 60 * 60 * 1000;
+      function currentValue() {
+        var now = Date.now();
+        if (typeof now !== "number" || !isFinite(now)) return null;
+        var elapsedDays = (now - startMs) / dayMs;
+        if (!isFinite(elapsedDays)) return null;
+        if (elapsedDays < 0) elapsedDays = 0;
+        var value = startSqft + elapsedDays * perDay;
+        return isFinite(value) ? value : null;
+      }
+      function render() {
+        var text = formatCount(currentValue());
+        if (text == null) {
+          if (fallback) el.textContent = fallback;
+          return;
         }
-        requestAnimationFrame(frame);
+        el.textContent = text;
       }
 
-      if (typeof IntersectionObserver !== "function") {
-        el.textContent = finalText;
-        return;
-      }
-      var observer = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-          if (!entry.isIntersecting) return;
-          tick();
-          observer.disconnect();
-        });
-      }, { threshold: 0.45 });
-      el._filmObserver = observer;
-      observer.observe(el);
+      render();
+      if (typeof setInterval === "function") setInterval(render, reduceMotion ? 60000 : 1000);
     }
 
     function scrollToEl(el, block) {
