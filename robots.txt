@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://performcoregroup.com/sitemap.xml
