@@ -1,24 +1,30 @@
 # PerformCore website
 
-Public site for PerformCore window film in Naples, Florida.
+Public site for PerformCore (Perform Core Group), window film and tint in Naples, Florida. The company serves Collier and Lee counties.
 
-Live preview: https://srod24.github.io/performcore-site/
+The live site is [https://performcoregroup.com/](https://performcoregroup.com/). GitHub Pages publishes the `main` branch, so merging to `main` updates the live site.
 
-The custom domain performcoregroup.com is not pointed here yet. Do not add a CNAME file until DNS is ready.
+Do not edit `CNAME` or the GitHub Pages domain settings unless you mean to move the domain.
 
 ## Update the phone number
 
-Edit the `PERFORMCORE` block at the top of `index.html`:
+Edit the `PERFORMCORE` block near the top of `index.html`:
 
 ```js
 phone: "(239) 296-9853",
 phoneTel: "+12392969853"
 ```
 
-Then publish:
+That block updates the call buttons, the phone lines in the page, and the LocalBusiness schema telephone.
 
-```bash
-cd /workspace/performcore-site && git add index.html && git commit -m "Update phone" && git push
-```
+## Update square feet of film applied
 
-GitHub Pages usually updates within a minute.
+Search `index.html` for `FILM COUNTER`. Change only the text inside the element with id `film-sqft`.
+
+- A whole number, such as `250000` or `250,000`, counts up when the stat scrolls into view.
+- If the visitor has reduced motion turned on, the final number appears right away.
+- Anything that is not a whole number is shown exactly as typed, including the `XXXXXXXXX` placeholder. The page will not show `NaN`.
+
+## Publish
+
+Commit and push to `main`. GitHub Pages usually updates within a minute.
